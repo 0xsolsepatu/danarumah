@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="DanaRumah — anggaran keluarga: pemasukan, pengeluaran, anggaran per kategori, tagihan, target tabungan, dan laporan bulanan. Bekerja offline, data tersimpan di browser Anda.">
+<title>DanaRumah — Anggaran Keluarga</title>
+<link rel="stylesheet" href="style.css">
+<script type="module" src="main.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="#/"><span class="brand-mark">Rp</span><span class="brand-name">DanaRumah</span><span class="brand-tag">anggaran keluarga</span></a>
+    <p class="header-note">Keluarga Prasetyo · Jakarta · Tanpa akun, tanpa internet — data hanya di browser Anda</p>
+  </div>
+</header>
+<main id="app" class="wrap"></main>
+<footer class="site-footer">
+  <div class="wrap">
+    <nav aria-label="Bagian situs">
+      <a href="#/">Dashboard</a>
+      <a href="#/transactions">Transaksi</a>
+      <a href="#/budgets">Anggaran</a>
+      <a href="#/bills">Tagihan</a>
+      <a href="#/goals">Target</a>
+      <a href="#/reports">Laporan</a>
+    </nav>
+    <p>DanaRumah adalah situs demo anggaran rumah tangga. Semua angka adalah contoh untuk keluarga fiktif dan tersimpan di localStorage browser Anda — hapus data kapan saja dengan tombol di bawah.</p>
+    <p><button type="button" class="btn small" data-action="reset-data">Reset data demo</button></p>
+  </div>
+</footer>
+<div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
