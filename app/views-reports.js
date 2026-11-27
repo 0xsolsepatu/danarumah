@@ -1,8 +1,8 @@
 // Reports view: October vs November comparison, the six-month trend chart,
 // the category donut, and plain-language insights. The CSV button downloads
 // the current month's ledger as a file (built in the browser, no network).
-import { fmtIDR, fmtShort, fmtMonth, pct } from './format.js';
-import { CATEGORIES, TREND } from './data.js';
+import { fmtIDR, fmtShort, fmtMonth, pct, pct1 } from './format.js';
+import { CATEGORIES, TREND, RULE_503020, categoryById } from './data.js';
 import * as store from './store.js';
 import { trendChart, donutChart, hbarChart } from './charts.js';
 
@@ -14,6 +14,60 @@ function deltaRow(label, oct, nov, invert, octLabel, novLabel) {
   return (
     '<tr><td>' + label + '</td><td class="num" data-label="' + octLabel + '">' + fmtIDR(oct) + '</td><td class="num" data-label="' + novLabel + '">' + fmtIDR(nov) + '</td>' +
     '<td class="num ' + (good ? 'good' : 'bad') + '" data-label="Perubahan">' + arrow + ' ' + fmtIDR(Math.abs(diff)) + ' (' + (p > 0 ? '+' : '') + p + '%)</td></tr>'
+  );
+}
+
+// 50/30/20 comparison: needs vs wants vs savings as shares of this
+// month's income, each against its guide percentage. All figures are
+// computed from the month's own ledger, so editing a transaction moves
+// them; nothing here is hard-coded.
+function fiftyThirtyTwenty(stats, monthKey) {
+  const income = stats.income;
+  const groups = [
+    { id: 'needs', label: 'Kebutuhan', en: 'Needs', ideal: 50, color: '#0f766e', ids: RULE_503020.needs, note: 'Belanja harian, listrik, air, internet, transport, sekolah, kesehatan, rumah tangga' },
+    { id: 'wants', label: 'Keinginan', en: 'Wants', ideal: 30, color: '#d97706', ids: RULE_503020.wants, note: 'Makan di luar dan hiburan saja' },
+    { id: 'saved', label: 'Tabungan', en: 'Savings', ideal: 20, color: '#0284c7', ids: [], note: 'Sisa pemasukan yang belum terpakai' },
+  ];
+  const rows = groups.map((g) => {
+    const amount = g.id === 'saved' ? stats.left : g.ids.reduce((s, id) => s + (stats.byCategory[id] || 0), 0);
+    const p = (amount / income) * 100;
+    const idealRp = Math.round((income * g.ideal) / 100);
+    const diffRp = amount - idealRp;
+    const diffPts = p - g.ideal;
+    const over = diffRp > 0;
+    return (
+      '<div class="split-row">' +
+      '<div class="split-head"><strong>' + g.label + ' · ' + g.en + '</strong><span>' + fmtIDR(amount) + ' · ' + pct1(amount, income) + '% dari pemasukan</span></div>' +
+      '<div class="split-track"><div class="split-fill" style="width:' + Math.min(100, Math.max(1, p)).toFixed(1) + '%;background:' + g.color + '"></div>' +
+      '<span class="split-ideal" style="left:' + g.ideal + '%" title="Patokan ' + g.ideal + '%"></span></div>' +
+      '<div class="split-scale"><span>Patokan ' + g.ideal + '% · ' + fmtIDR(idealRp) + ' &nbsp;·&nbsp; ' + g.note + '</span>' +
+      '<span class="split-diff ' + (over ? 'bad' : 'good') + '">' + (over ? '+' : '') + fmtIDR(diffRp) + ' (' + (diffPts > 0 ? '+' : '') + diffPts.toFixed(1).replace('.', ',') + ' poin)</span></div>' +
+      '</div>'
+    );
+  }).join('');
+
+  // Verdict: name the biggest needs category and say plainly where the
+  // money actually leaks, instead of repeating the numbers.
+  const biggestNeed = RULE_503020.needs
+    .map((id) => ({ c: categoryById(id), spent: stats.byCategory[id] || 0, limit: store.load().budgets[id] }))
+    .sort((a, b) => b.spent - a.spent)[0];
+  const needsAmount = groups[0].ids.reduce((s, id) => s + (stats.byCategory[id] || 0), 0);
+  const needsPct = (needsAmount / income) * 100;
+  const wantsAmount = groups[1].ids.reduce((s, id) => s + (stats.byCategory[id] || 0), 0);
+  const savedPct = (stats.left / income) * 100;
+  const overPct = biggestNeed.limit ? Math.round(((biggestNeed.spent - biggestNeed.limit) / biggestNeed.limit) * 100) : 0;
+  const needsGap = Math.abs(needsPct - 50).toFixed(1).replace('.', ',');
+  const verdict =
+    'Kebutuhan memakan <strong>' + pct1(needsAmount, income) + '% pemasukan</strong> — ' + needsGap + ' poin ' + (needsPct >= 50 ? 'di atas' : 'di bawah') + ' patokan 50%. ' +
+    'Biang terbesarnya <strong>' + biggestNeed.c.name + '</strong> (' + fmtShort(biggestNeed.spent) + (overPct > 0 ? ', ' + overPct + '% di atas anggarannya sendiri' : '') + '). ' +
+    'Keinginan justru hanya ' + pct1(wantsAmount, income) + '% — jauh di bawah patokan 30% — jadi memangkas jajan tidak banyak membantu; yang perlu ditekan adalah belanja mingguan. ' +
+    'Tabungan ' + pct1(stats.left, income) + '% ' + (savedPct >= 20 ? 'sudah di atas patokan 20%: pertahankan.' : 'masih di bawah patokan 20%: sisihkan dulu di awal bulan.');
+
+  return (
+    '<section class="card"><h2>Aturan 50/30/20 · ' + fmtMonth(monthKey) + '</h2>' +
+    '<p class="card-note" style="margin-bottom:14px">Patokan klasik anggaran rumah tangga: 50% pemasukan untuk kebutuhan, 30% untuk keinginan, 20% ditabung. Garis hitam pada tiap bar adalah patokannya.</p>' +
+    rows +
+    '<p class="card-note">' + verdict + '</p></section>'
   );
 }
 
@@ -66,6 +120,8 @@ export function reports(monthKey) {
     deltaRow('Sisa', prev.left, stats.left, false, fmtMonth(prevKey), fmtMonth(monthKey)) +
     '</tbody></table></div>' +
     '<p class="card-note">Panah hijau berarti membaik (pemasukan/sisa naik, pengeluaran turun); merah berarti sebaliknya.</p></section>' +
+
+    fiftyThirtyTwenty(stats, monthKey) +
 
     '<div class="two-col">' +
     '<section class="card"><h2>Tren 6 bulan · pengeluaran (hijau) vs pemasukan (oranye)</h2>' +

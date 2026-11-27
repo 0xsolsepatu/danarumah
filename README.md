@@ -24,8 +24,9 @@ localStorage.
 - **Target (Savings goals)** — Dana Darurat, Liburan Keluarga and DP Motor
   Baru with progress, add-funds controls and a new-goal form.
 - **Laporan (Reports)** — October vs November comparison, a six-month
-  trend chart, a category donut, and plain-language next steps. CSV export
-  downloads the month's ledger.
+  trend chart, a category donut, a 50/30/20 needs–wants–savings
+  comparison against the classic budgeting guide, and plain-language
+  next steps. CSV export downloads the month's ledger.
 
 Figures are real and consistent: November 2026 income Rp 12.850.000,
 spending Rp 9.412.500, remaining Rp 3.437.500 (27% savings rate). The

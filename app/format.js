@@ -39,3 +39,9 @@ export function pct(part, whole) {
   if (!whole) return 0;
   return Math.round((part / whole) * 100);
 }
+
+// One-decimal percent with an Indonesian decimal comma: 66.37 -> "66,4".
+export function pct1(part, whole) {
+  if (!whole) return '0';
+  return (Math.round((part / whole) * 1000) / 10).toString().replace('.', ',');
+}

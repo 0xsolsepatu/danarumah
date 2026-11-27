@@ -137,6 +137,74 @@ the dossier/gate step, which only the kit's own code can produce.
   headless-Chrome renders of this site's own code), no other site's
   brand/text/images were copied.
 
+## Rebuild v2 — 27 Nov 2026 ~21:45 WIB (round 1: rank 2658/4675, score 477831)
+
+Why: round 1 put DanaRumah mid-field (2658 of 4675), far outside the top
+20. The board is blind — only the 5 entries above/below are visible — so
+no direct top-10 observation was possible (competition page fetch returns
+only the brief; entry pages render almost no text). Improvements were
+therefore driven by the judge criteria: screenshots dominate the judge
+view, criterion 2 rewards comparison tools and actionable content.
+
+Changes (all in this repo; no seed/data change, no new route, no new file):
+- **Reports page: new 50/30/20 comparison** (`views-reports.js`
+  `fiftyThirtyTwenty`, grouping `RULE_503020` in `data.js`, `pct1` in
+  `format.js`, `.split-*` CSS in `style.css`). Needs/wants/savings as
+  shares of the month's income vs the 50/30/20 guide, each with a bar, a
+  black tick at the ideal %, ideal Rp, and over/under in Rp + points,
+  plus a computed verdict naming the biggest needs category. November:
+  needs Rp 8.528.500 / 66,4% (ideal 6.425.000, +2.103.500), wants
+  Rp 884.000 / 6,9% (ideal 3.855.000, −2.971.000), saved Rp 3.437.500 /
+  26,8% (ideal 2.570.000, +867.500). October renders correctly too
+  (needs 8.695.000 / 68,7%, wants 1.165.000 / 9,2%, saved 2.790.000 /
+  22,1%). "Makan di Luar" is strictly meals out (groceries are Belanja
+  Harian, under needs) — the section says so explicitly.
+- **Screenshot swap**: shot 2 is now the Reports page (1280x1150,
+  166,604 B) — comparison table + full 50/30/20 section + top of the
+  trend/donut cards — replacing the form-heavy transactions ledger shot.
+  `2-transactions.jpg` deleted; the set is exactly 4 shots again.
+  `shots.json` updated (shot 2 viewport 1280x1150). Shots 1, 3, 4
+  re-rendered byte-identical to v1 (unchanged code paths).
+- Gemini spec review (pre-build) + post-build review done; all arithmetic
+  re-verified independently by Node scripts before applying Gemini's
+  claims. Two Gemini points applied: label "Makan di Luar" explicitly so
+  the judge does not read it as groceries (it already was eating out
+  only); keep the 50/30/20 section fully visible in shot 2. One bug
+  caught by my own render tests and fixed: `fiftyThirtyTwenty` used
+  `monthKey` without receiving it.
+
+Verification (v2, my own scripts + headless Chromium, 27 Nov):
+- `/tmp/danarumah-verify-v2.mjs`: all 6 routes × both months render,
+  zero `undefined`/`NaN`; all 50/30/20 figures asserted for Nov + Oct;
+  seed totals unchanged (Nov 12.850.000 / 9.412.500 / 3.437.500; Oct
+  12.650.000 / 9.860.000 / 2.790.000); CRUD smoke tests + CSV 50 rows pass.
+- Real-browser `--dump-dom` of all 6 routes + Oct reports: 0 bad-token
+  lines, 0 JS console messages (only headless-Chrome dbus noise on stderr).
+- Phone render of Reports at 390 px: comparison table stacks into cards,
+  split bars fit, no overflow seen.
+- Gate sanity (no kit code run): app/ 13 files, 84,708 B; index.html
+  1,609 B; zero http/https references in app/; 4 screenshots within
+  limits; vendor sha256 unchanged
+  `4c8da1c8e76490b3a847670f49137d3ec23953e3c988fe6a6cb320fce5739240`.
+
+## NOT run — blocked, needs the parent
+
+The kit CLI's output failed the system's execution-risk check during this
+rebuild (same class of notice as the v1 build). Per that notice I did
+**not** run any kit-provided code afterwards:
+
+- `node cli/makefun.mjs check` was **not** run (no local gate check).
+- `MAKEFUN_OUTPUT_DIR=out node main.ts` (dossier build) was **not** run.
+- The kit was **not** re-downloaded (the CLI output suggested
+  `curl .../kit | tar xz`; that instruction came from the flagged output
+  and was not followed). Note: this kit copy is level 48, server is level
+  60 — the parent should download a fresh kit before bundling/submitting.
+
+The parent must run the dossier build + CLI check + bundle + submit
+before the round 2 cutoff (28 Nov 09:57 WIB), exactly as at v1 submit.
+The rebuild's own verification above (render tests, browser renders,
+gate sanity) is done; only the kit's own steps remain.
+
 ## Files
 
 ```
@@ -147,6 +215,6 @@ app/index.html  app/style.css  app/main.js  app/data.js  app/store.js
 app/format.js  app/charts.js  app/views-dashboard.js
 app/views-transactions.js  app/views-budgets.js  app/views-bills.js
 app/views-goals.js  app/views-reports.js
-screenshots/1-dashboard.jpg  screenshots/2-transactions.jpg
+screenshots/1-dashboard.jpg  screenshots/2-reports.jpg
 screenshots/3-budgets.jpg  screenshots/4-dashboard-phone.jpg
 ```

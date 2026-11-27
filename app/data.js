@@ -28,6 +28,16 @@ export function categoryLabel(tx) {
   return categoryById(tx.category).name + ' · ' + categoryById(tx.category).en;
 }
 
+// 50/30/20 grouping for the Reports comparison tool. Needs are the
+// must-pay categories; wants are eating out and entertainment only
+// ("Makan di Luar" is strictly meals out, never basic groceries —
+// groceries live in Belanja Harian, under needs). Savings is whatever
+// income is left unspent.
+export const RULE_503020 = {
+  needs: ['belanja', 'listrik', 'air', 'internet', 'transport', 'sekolah', 'kesehatan', 'rumah'],
+  wants: ['makan', 'hiburan'],
+};
+
 // Monthly budget limits (same plan for both seeded months).
 export const BUDGETS = {
   belanja: 2800000,

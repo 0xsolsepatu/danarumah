@@ -231,6 +231,19 @@ table.ledger { width: 100%; border-collapse: collapse; font-size: .94rem; }
 .fund-form label { flex: 1; font-size: .85rem; font-weight: 600; color: var(--muted); }
 .fund-form input { display: block; width: 100%; margin-top: 3px; padding: 7px 9px; border: 1px solid #d6cfc2; border-radius: 8px; font: inherit; }
 
+/* 50/30/20 split bars (Reports): actual share vs the guide percentage. */
+.split-row { margin-bottom: 16px; }
+.split-row:last-child { margin-bottom: 0; }
+.split-head { display: flex; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; font-size: .95rem; margin-bottom: 6px; }
+.split-head span { color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.split-track { position: relative; background: #efe9df; border-radius: 999px; height: 14px; }
+.split-fill { height: 100%; border-radius: 999px; }
+.split-ideal { position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px; background: var(--ink); border-radius: 2px; }
+.split-scale { display: flex; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; font-size: .85rem; color: var(--muted); margin-top: 5px; }
+.split-diff { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.split-diff.bad { color: var(--red); }
+.split-diff.good { color: var(--green); }
+
 /* Reports */
 .chart-svg { width: 100%; height: auto; display: block; }
 .chart-label { font-size: 12px; fill: var(--muted); }
