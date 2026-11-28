@@ -1,7 +1,7 @@
 // Reports view: October vs November comparison, the six-month trend chart,
 // the category donut, and plain-language insights. The CSV button downloads
 // the current month's ledger as a file (built in the browser, no network).
-import { fmtIDR, fmtShort, fmtMonth, pct, pct1 } from './format.js';
+import { fmtIDR, fmtShort, fmtDate, fmtMonth, pct, pct1 } from './format.js';
 import { CATEGORIES, TREND, RULE_503020, categoryById } from './data.js';
 import * as store from './store.js';
 import { trendChart, donutChart, hbarChart } from './charts.js';
@@ -92,6 +92,13 @@ export function reports(monthKey) {
     return { c, spent, limit, saved: limit - spent };
   }).filter((x) => x.saved > 0).sort((a, b) => b.saved - a.saved);
 
+  const topExpenses = store.monthTransactions(monthKey)
+    .filter((t) => t.type === 'expense')
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
+  const topTotal = topExpenses.reduce((s, t) => s + t.amount, 0);
+  const peak = TREND.reduce((a, b) => (b.spent > a.spent ? b : a), TREND[0]);
+
   const insights = [];
   if (worst.length) {
     insights.push('<strong>' + worst[0].c.name + '</strong> melewati anggaran ' + fmtIDR(worst[0].over) + ' — kebocoran terbesar bulan ini. Turunkan frekuensi belanja mingguan dari 4x menjadi 3x dan belanja di pasar tradisional di awal minggu.');
@@ -126,7 +133,7 @@ export function reports(monthKey) {
     '<div class="two-col">' +
     '<section class="card"><h2>Tren 6 bulan · pengeluaran (hijau) vs pemasukan (oranye)</h2>' +
     trendChart(TREND) +
-    '<p class="card-note">Pengeluaran tertinggi: Oktober (' + fmtShort(9860000) + ') karena service AC dan cek kesehatan tahunan. November kembali di bawah rata-rata.</p></section>' +
+    '<p class="card-note">Pengeluaran tertinggi: ' + fmtMonth(peak.month) + ' (' + fmtShort(peak.spent) + ') karena service AC dan cek kesehatan tahunan. November kembali di bawah rata-rata.</p></section>' +
 
     '<section class="card"><h2>Pengeluaran ' + fmtMonth(monthKey) + ' per kategori</h2>' +
     '<div class="donut-wrap">' + donutChart(donutItems, 'Total', fmtShort(stats.spent)) + '</div>' +
@@ -136,6 +143,16 @@ export function reports(monthKey) {
     '<section class="card"><h2>Pengeluaran per kategori · ' + fmtMonth(monthKey) + '</h2>' +
     hbarChart(CATEGORIES.map((c) => ({ label: c.name, value: stats.byCategory[c.id] || 0, color: c.color })).sort((a, b) => b.value - a.value)) +
     '</section>' +
+
+    '<section class="card"><h2>5 pengeluaran terbesar · ' + fmtMonth(monthKey) + '</h2>' +
+    '<ul class="tx-list">' + topExpenses.map((tx) => {
+      const cat = categoryById(tx.category);
+      return '<li class="tx-line"><span class="tx-dot" style="background:' + cat.color + '">' + cat.icon + '</span>' +
+        '<span class="tx-desc"><strong>' + tx.desc + '</strong><small>' + fmtDate(tx.date) + ' · ' + cat.name + '</small></span>' +
+        '<span class="tx-amount expense">− ' + fmtIDR(tx.amount) + '</span></li>';
+    }).join('') + '</ul>' +
+    '<p class="card-note">Lima transaksi ini saja sudah ' + fmtIDR(topTotal) + ' — ' + pct(topTotal, stats.spent) + '% dari seluruh pengeluaran bulan ini. ' +
+    topExpenses.filter((t) => store.load().bills.some((b) => b.name === t.desc)).length + ' di antaranya tagihan tetap; sisanya belanja dan kebutuhan harian — di situlah ruang penghematan terbesar.</p></section>' +
 
     '<section class="card"><h2>Yang perlu dilakukan bulan depan</h2>' +
     '<ol class="insights">' + insights.map((s) => '<li>' + s + '</li>').join('') + '</ol></section>'

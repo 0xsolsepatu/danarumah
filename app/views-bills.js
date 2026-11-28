@@ -5,7 +5,7 @@ import { fmtIDR, fmtMonth } from './format.js';
 import { categoryById } from './data.js';
 import * as store from './store.js';
 
-const TODAY_DAY = 27; // "today" inside the demo month (27 Nov 2026).
+export const TODAY_DAY = 27; // "today" inside the demo month (27 Nov 2026).
 
 export function bills(monthKey) {
   const state = store.load();

@@ -33,6 +33,19 @@ export function budgets(monthKey) {
   }).join('');
 
   const overCount = CATEGORIES.filter((c) => (stats.byCategory[c.id] || 0) > state.budgets[c.id]).length;
+  const budgetLeft = stats.budgetTotal - stats.spent;
+
+  // Reallocation tip, computed from this month's own figures: which
+  // categories blew their limit, and which still have room to cover them.
+  const overList = CATEGORIES.map((c) => ({ c, over: (stats.byCategory[c.id] || 0) - state.budgets[c.id] }))
+    .filter((x) => x.over > 0).sort((a, b) => b.over - a.over);
+  const roomList = CATEGORIES.map((c) => ({ c, room: state.budgets[c.id] - (stats.byCategory[c.id] || 0) }))
+    .filter((x) => x.room > 0).sort((a, b) => b.room - a.room);
+  const tip = overList.length && roomList.length
+    ? 'Yang jebol: ' + overList.map((x) => x.c.name + ' (+' + fmtIDR(x.over) + ')').join(', ') +
+      '. Tutup dari yang masih longgar: ' + roomList.slice(0, 2).map((x) => x.c.name + ' (sisa ' + fmtIDR(x.room) + ')').join(' dan ') +
+      ' — total anggaran tetap ' + fmtIDR(stats.budgetTotal) + ', tidak perlu tambah uang.'
+    : 'Semua kategori masih dalam batas — tidak ada yang perlu dipindahkan bulan ini.';
 
   return (
     '<section class="page-head">' +
@@ -42,8 +55,13 @@ export function budgets(monthKey) {
       ? '<strong>' + overCount + ' kategori sudah melewati batas</strong> — kurangi belanja di sana atau naikkan anggarannya di bawah.'
       : 'Semua kategori masih dalam batas. Pertahankan sampai akhir bulan.') +
     '</p></section>' +
+    '<section class="stat-grid three">' +
+    '<div class="card stat-card"><div class="stat-label">Total anggaran</div><div class="stat-value">' + fmtIDR(stats.budgetTotal) + '</div><div class="stat-sub">10 kategori</div></div>' +
+    '<div class="card stat-card spent"><div class="stat-label">Terpakai</div><div class="stat-value">' + fmtIDR(stats.spent) + '</div><div class="stat-sub">' + stats.budgetUsed + '% dari total anggaran</div></div>' +
+    '<div class="card stat-card' + (budgetLeft < 0 ? ' spent' : ' left') + '"><div class="stat-label">' + (budgetLeft < 0 ? 'Melebihi total anggaran' : 'Sisa anggaran') + '</div><div class="stat-value">' + fmtIDR(Math.abs(budgetLeft)) + '</div><div class="stat-sub">' + (budgetLeft < 0 ? 'di atas total yang direncanakan' : 'belum terpakai dari total') + '</div></div>' +
+    '</section>' +
     '<div class="budget-grid">' + cards + '</div>' +
     '<section class="card tip-card"><h2>Cara memakai anggaran ini</h2>' +
-    '<p>Anggaran dibuat di awal bulan dari pemasukan yang sudah pasti. Kalau satu kategori jebol, jangan tambah anggaran diam-diam — pindahkan dari kategori lain yang masih longgar, supaya totalnya tetap ' + fmtIDR(stats.budgetTotal) + '. Kategori yang paling sering jebol di keluarga ini: <strong>Belanja Harian</strong> dan <strong>Internet &amp; HP</strong>.</p></section>'
+    '<p>Anggaran dibuat di awal bulan dari pemasukan yang sudah pasti. Kalau satu kategori jebol, jangan tambah anggaran diam-diam — pindahkan dari kategori lain yang masih longgar, supaya totalnya tetap ' + fmtIDR(stats.budgetTotal) + '. ' + tip + '</p></section>'
   );
 }

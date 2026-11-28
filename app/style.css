@@ -29,7 +29,7 @@ body {
 }
 a { color: var(--teal); text-decoration: none; }
 a:hover { text-decoration: underline; }
-h1 { font-size: 1.7rem; line-height: 1.2; margin: 0 0 .3rem; letter-spacing: -.01em; }
+h1 { font-size: 1.6rem; line-height: 1.2; margin: 0 0 .3rem; letter-spacing: -.01em; }
 h2 { font-size: 1.12rem; margin: 0 0 .8rem; }
 h3 { font-size: 1rem; margin: 0; }
 p { margin: 0 0 .7rem; }
@@ -52,7 +52,7 @@ p { margin: 0 0 .7rem; }
 /* Nav + month switcher (rendered inside #app by main.js) */
 .main-nav {
   display: flex; flex-wrap: wrap; gap: 4px;
-  margin: 16px 0 10px; background: var(--card);
+  margin: 12px 0 8px; background: var(--card);
   border: 1px solid var(--line); border-radius: var(--radius); padding: 6px;
 }
 .main-nav a {
@@ -63,22 +63,22 @@ p { margin: 0 0 .7rem; }
 .main-nav a[aria-current="page"] { background: var(--teal); color: #fff; }
 .month-switcher {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  margin: 0 0 14px; padding: 8px 4px;
+  margin: 0 0 10px; padding: 6px 4px;
 }
 .month-switcher strong { font-size: 1.05rem; }
 
 /* Cards, grids */
 .card {
   background: var(--card); border: 1px solid var(--line);
-  border-radius: var(--radius); padding: 18px 20px; margin-bottom: 16px;
+  border-radius: var(--radius); padding: 16px 18px; margin-bottom: 14px;
 }
-.page-head { margin: 6px 0 16px; }
+.page-head { margin: 4px 0 12px; }
 .page-head p { color: var(--muted); max-width: 720px; }
-.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
 .stat-grid.three { grid-template-columns: repeat(3, 1fr); }
 .stat-card { margin-bottom: 0; }
 .stat-label { font-size: .82rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
-.stat-value { font-size: 1.45rem; font-weight: 800; letter-spacing: -.02em; margin: 4px 0 2px; }
+.stat-value { font-size: 1.38rem; font-weight: 800; letter-spacing: -.02em; margin: 4px 0 2px; }
 .stat-sub { font-size: .88rem; color: var(--muted); }
 .stat-card.spent .stat-value { color: var(--red); }
 .stat-card.left .stat-value { color: var(--teal); }
@@ -86,7 +86,7 @@ p { margin: 0 0 .7rem; }
 .two-col .card { margin-bottom: 16px; }
 .insight-bar {
   background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius);
-  padding: 12px 16px; margin-bottom: 16px; font-size: .95rem;
+  padding: 11px 15px; margin-bottom: 14px; font-size: .95rem;
 }
 .card-link { margin: .6rem 0 0; font-size: .92rem; }
 .card-note { font-size: .88rem; color: var(--muted); margin: .6rem 0 0; }
@@ -173,6 +173,11 @@ p { margin: 0 0 .7rem; }
 .btn.small { padding: 6px 11px; font-size: .86rem; }
 .btn.danger { color: var(--red); border-color: #fecaca; }
 .btn.danger:hover { background: var(--red-soft); }
+.btn.disabled {
+  color: var(--muted); background: #f5f1ea; border-color: var(--line);
+  cursor: not-allowed;
+}
+.btn.disabled:hover { background: #f5f1ea; text-decoration: none; }
 
 /* Ledger table */
 .table-wrap { overflow-x: auto; margin-top: 12px; }
@@ -230,6 +235,15 @@ table.ledger { width: 100%; border-collapse: collapse; font-size: .94rem; }
 .fund-form { display: flex; gap: 8px; align-items: end; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
 .fund-form label { flex: 1; font-size: .85rem; font-weight: 600; color: var(--muted); }
 .fund-form input { display: block; width: 100%; margin-top: 3px; padding: 7px 9px; border: 1px solid #d6cfc2; border-radius: 8px; font: inherit; }
+
+/* 50/30/20 mini strip (Dashboard): one compact row per group. */
+.split-mini-card h2 { margin-bottom: .6rem; }
+.split-mini-row { display: grid; grid-template-columns: 168px 1fr 218px; gap: 12px; align-items: center; padding: 5px 0; font-size: .92rem; }
+.split-mini-label { font-weight: 600; }
+.split-mini-track { position: relative; background: #efe9df; border-radius: 999px; height: 11px; }
+.split-mini-fill { height: 100%; border-radius: 999px; }
+.split-mini-fig { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.split-mini-fig small { color: var(--muted); font-weight: 400; }
 
 /* 50/30/20 split bars (Reports): actual share vs the guide percentage. */
 .split-row { margin-bottom: 16px; }
@@ -299,6 +313,8 @@ table.ledger { width: 100%; border-collapse: collapse; font-size: .94rem; }
   .bill-card { flex-wrap: wrap; }
   .bill-side { flex-direction: row; width: 100%; justify-content: space-between; align-items: center; }
   .hbar-row { grid-template-columns: 104px 1fr 70px; font-size: .84rem; }
+  .split-mini-row { grid-template-columns: 1fr; gap: 2px; padding: 7px 0; }
+  .split-mini-fig { text-align: left; }
   .legend { columns: 1; }
   /* Ledger becomes stacked cards: no horizontal scrolling on a phone. */
   table.ledger, .ledger tbody, .ledger tr, .ledger td { display: block; width: 100%; }

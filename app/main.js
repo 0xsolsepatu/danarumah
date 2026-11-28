@@ -53,12 +53,35 @@ function navLink(path, label, current) {
   return '<a href="#' + path + '"' + active + '>' + label + '</a>';
 }
 
+function monthShift(key, delta) {
+  const [y, m] = key.split('-').map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
 function render() {
   window.__shotReady = false;
   store.load();
   const { path, query } = parseHash();
   const month = monthFrom(query);
-  const otherMonth = month === '2026-11' ? '2026-10' : '2026-11';
+  const idx = MONTHS.indexOf(month);
+  const prevKey = idx > 0 ? MONTHS[idx - 1] : null;
+  const nextKey = idx >= 0 && idx < MONTHS.length - 1 ? MONTHS[idx + 1] : null;
+
+  // Month switcher: ‹ goes to the earlier month, › to the later one. A
+  // side with no seeded month is a disabled label naming that month —
+  // never a link back to the month already shown, and never a link to a
+  // month with no data behind it. (v2 bug: both buttons linked to the
+  // other month, so › on November pointed backwards to October.)
+  const switchBtn = (target, label) => target
+    ? '<a class="btn small" href="#' + path + '?month=' + target + '">' + label + '</a>'
+    : '<span class="btn small disabled" aria-disabled="true">' + label + '</span>';
+  const switcher = path === '/goals' ? '' :
+    '<div class="month-switcher" role="group" aria-label="Pilih bulan">' +
+    switchBtn(prevKey, '‹ ' + fmtMonth(prevKey || monthShift(month, -1))) +
+    '<strong>' + fmtMonth(month) + '</strong>' +
+    switchBtn(nextKey, fmtMonth(nextKey || monthShift(month, 1)) + ' ›') +
+    '</div>';
 
   const nav =
     '<nav class="main-nav" aria-label="Bagian utama">' +
@@ -69,13 +92,6 @@ function render() {
     navLink('/goals', 'Target', path) +
     navLink('/reports', 'Laporan', path) +
     '</nav>';
-
-  const switcher =
-    '<div class="month-switcher" role="group" aria-label="Pilih bulan">' +
-    '<a class="btn small" href="#' + path + '?month=' + otherMonth + '">‹ ' + fmtMonth(otherMonth) + '</a>' +
-    '<strong>' + fmtMonth(month) + '</strong>' +
-    '<a class="btn small" href="#' + path + '?month=' + otherMonth + '">' + fmtMonth(otherMonth) + ' ›</a>' +
-    '</div>';
 
   let body = '';
   let title = 'DanaRumah';

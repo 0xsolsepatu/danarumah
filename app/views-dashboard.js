@@ -1,10 +1,11 @@
 // Dashboard view: the month at a glance — summary cards, spending by
 // category, budget progress, upcoming bills, savings goals, recent
 // transactions. Every number comes from store.monthStats, never hard-coded.
-import { fmtIDR, fmtShort, fmtDate, fmtMonth, pct } from './format.js';
-import { CATEGORIES, categoryById } from './data.js';
+import { fmtIDR, fmtShort, fmtDate, fmtMonth, pct, pct1 } from './format.js';
+import { CATEGORIES, RULE_503020, categoryById } from './data.js';
 import * as store from './store.js';
 import { hbarChart } from './charts.js';
+import { TODAY_DAY } from './views-bills.js';
 
 function moneyCard(label, value, sub, tone) {
   return (
@@ -76,6 +77,23 @@ export function dashboard(monthKey) {
     ? 'Sisa ' + fmtIDR(stats.left) + ' bulan ini — ' + stats.rate + '% dari pemasukan belum terpakai. Pindahkan ke Dana Darurat sebelum akhir bulan.'
     : 'Pengeluaran sudah melewati pemasukan bulan ini sebesar ' + fmtIDR(-stats.left) + '. Cek kategori yang over budget di bawah.';
 
+  // Compact 50/30/20 strip: the same comparison as the Reports page, in
+  // one glanceable row — needs/wants/savings vs the 50/30/20 guide.
+  const splitGroups = [
+    { label: 'Kebutuhan · Needs', ideal: 50, color: '#0f766e', amount: RULE_503020.needs.reduce((s, id) => s + (stats.byCategory[id] || 0), 0) },
+    { label: 'Keinginan · Wants', ideal: 30, color: '#d97706', amount: RULE_503020.wants.reduce((s, id) => s + (stats.byCategory[id] || 0), 0) },
+    { label: 'Tabungan · Savings', ideal: 20, color: '#0284c7', amount: stats.left },
+  ];
+  const splitMini = splitGroups.map((g) => {
+    const p = (g.amount / stats.income) * 100;
+    return (
+      '<div class="split-mini-row"><span class="split-mini-label">' + g.label + '</span>' +
+      '<div class="split-mini-track"><div class="split-mini-fill" style="width:' + Math.min(100, Math.max(1, p)).toFixed(1) + '%;background:' + g.color + '"></div>' +
+      '<span class="split-ideal" style="left:' + g.ideal + '%"></span></div>' +
+      '<span class="split-mini-fig">' + fmtShort(g.amount) + ' · ' + pct1(g.amount, stats.income) + '% <small>(patokan ' + g.ideal + '%)</small></span></div>'
+    );
+  }).join('');
+
   return (
     '<section class="page-head">' +
     '<h1>Selamat datang, Keluarga Prasetyo</h1>' +
@@ -91,6 +109,10 @@ export function dashboard(monthKey) {
 
     '<div class="insight-bar">💡 <strong>Insight bulan ini:</strong> ' + insight + '</div>' +
 
+    '<section class="card split-mini-card"><h2>Aturan 50/30/20 · ' + fmtMonth(monthKey) + '</h2>' +
+    splitMini +
+    '<p class="card-link"><a href="#/reports">Lihat perbandingan lengkap + saran →</a></p></section>' +
+
     '<div class="two-col">' +
     '<section class="card"><h2>Pengeluaran per kategori</h2>' +
     hbarChart(byCat.slice(0, 7)) +
@@ -104,9 +126,14 @@ export function dashboard(monthKey) {
     '<div class="two-col">' +
     '<section class="card"><h2>Tagihan belum dibayar · ' + upcoming.length + ' tagihan</h2>' +
     (upcoming.length
-      ? '<ul class="bill-mini">' + upcoming.map((b) => (
-        '<li><span><strong>' + b.name + '</strong><small>Jatuh tempo tgl ' + b.day + ' · ' + fmtMonth(monthKey) + '</small></span><span class="bill-amount">' + fmtIDR(b.amount) + '</span></li>'
-      )).join('') + '</ul><p class="card-link">Total belum dibayar: <strong>' + fmtIDR(billsDueTotal) + '</strong> · <a href="#/bills">Kelola tagihan →</a></p>'
+      ? '<ul class="bill-mini">' + upcoming.map((b) => {
+        const overdue = b.day < TODAY_DAY;
+        const dueSoon = !overdue && b.day - TODAY_DAY <= 3;
+        return '<li><span><strong>' + b.name + '</strong><small>Jatuh tempo tgl ' + b.day + ' · ' + fmtMonth(monthKey) +
+          (overdue ? ' · <em class="over-flag">TERLAMBAT ' + (TODAY_DAY - b.day) + ' HARI</em>'
+            : dueSoon ? ' · <span class="soon-flag">JATUH TEMPO ' + (b.day - TODAY_DAY) + ' HARI LAGI</span>' : '') +
+          '</small></span><span class="bill-amount">' + fmtIDR(b.amount) + '</span></li>';
+      }).join('') + '</ul><p class="card-link">Total belum dibayar: <strong>' + fmtIDR(billsDueTotal) + '</strong> · <a href="#/bills">Kelola tagihan →</a></p>'
       : '<p>Semua tagihan bulan ini sudah lunas. 🎉</p><p class="card-link"><a href="#/bills">Lihat riwayat tagihan →</a></p>') +
     '</section>' +
 
